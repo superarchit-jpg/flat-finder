@@ -1,4 +1,4 @@
-name: Build NOIDA and South Delhi datasets
+name: Build NOIDA datasets
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        city: [noida, south-delhi]
+        city: [noida]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,6 +60,8 @@ jobs:
         run: python pipeline/osm_fetch.py ${{ matrix.city }}
       - name: Build web dataset
         run: python pipeline/build_city.py ${{ matrix.city }}
+      - name: Audit independent evidence and data quality
+        run: python pipeline/audit_city.py noida --strict
       - name: Validate generated dataset
         run: |
           python - <<'PY'
@@ -88,5 +90,6 @@ jobs:
             pipeline/out/${{ matrix.city }}/mb_projects.json
             pipeline/out/${{ matrix.city }}/osm_areas.geojson
             pipeline/out/${{ matrix.city }}/osm_pois.json
+            pipeline/out/${{ matrix.city }}/audit.json
           retention-days: 30
           if-no-files-found: warn
