@@ -1,0 +1,92 @@
+name: Build NOIDA and South Delhi datasets
+
+on:
+  push:
+    branches: [feature/noida-south-delhi]
+    paths:
+      - 'data/cities.json'
+      - 'pipeline/**'
+      - '.github/workflows/build-regions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-regions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        city: [noida, south-delhi]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Verify city configuration
+        run: |
+          python - <<'PY'
+          import json
+          cities = json.load(open('data/cities.json'))
+          city = cities['${{ matrix.city }}']
+          south, west, north, east = city['bbox']
+          assert -90 <= south < north <= 90
+          assert -180 <= west < east <= 180
+          assert west <= city['center'][0] <= east
+          assert south <= city['center'][1] <= north
+          PY
+      - name: Test data pipeline
+        run: |
+          python -m pip install pytest
+          cd pipeline
+          python -m pytest -q
+      - name: Test website
+        run: |
+          cd web
+          npm ci
+          npx vitest run --root .. cli web/src
+      - name: Crawl Magicbricks list
+        run: python pipeline/mb_crawl.py list ${{ matrix.city }}
+      - name: Crawl Magicbricks projects
+        run: python pipeline/mb_crawl.py projects ${{ matrix.city }}
+      - name: Fetch OpenStreetMap features
+        run: python pipeline/osm_fetch.py ${{ matrix.city }}
+      - name: Build web dataset
+        run: python pipeline/build_city.py ${{ matrix.city }}
+      - name: Validate generated dataset
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          city = '${{ matrix.city }}'
+          d = Path('web/public/data')
+          main = json.loads((d / (city + '.json')).read_text())
+          shapes = json.loads((d / (city + '-shapes.geojson')).read_text())
+          details = json.loads((d / (city + '-details.json')).read_text())
+          assert main['city']['id'] == city
+          assert main['counts']['on_map'] > 0, 'No located societies; review upstream source/slug'
+          assert main['societies'], 'Empty city output'
+          assert shapes['type'] == 'FeatureCollection'
+          assert isinstance(details, dict)
+          print('Counts:', main['counts'])
+          PY
+      - name: Save generated data for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-${{ matrix.city }}
+          path: |
+            web/public/data/${{ matrix.city }}*
+            pipeline/out/${{ matrix.city }}/mb_index.json
+            pipeline/out/${{ matrix.city }}/mb_projects.json
+            pipeline/out/${{ matrix.city }}/osm_areas.geojson
+            pipeline/out/${{ matrix.city }}/osm_pois.json
+          retention-days: 30
+          if-no-files-found: warn
