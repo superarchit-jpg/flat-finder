@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-regions:
@@ -79,6 +79,16 @@ jobs:
           assert isinstance(details, dict)
           print('Counts:', main['counts'])
           PY
+      - name: Commit validated NOIDA website data to development branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data/noida.json web/public/data/noida-details.json web/public/data/noida-shapes.geojson web/public/data/noida-societies.csv web/public/data/noida-units.csv web/public/data/cities.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate audited NOIDA property dataset"
+            git push origin HEAD:feature/noida-south-delhi
+          fi
       - name: Save generated data for review
         if: always()
         uses: actions/upload-artifact@v4
