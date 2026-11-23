@@ -424,6 +424,10 @@ def main(city="gurgaon"):
             pricing.add_estimates(s, model, {b: statistics.median(v) for b, v in sizes.items()}, psf)
         s["prices"] = {str(b): v for b, v in sorted(s["prices"].items())}
 
+    if city == "noida":
+        import rera_up
+        rera_up.annotate(societies, ROOT.parent / "data" / "rera" / "noida.json")
+
     for i, s in enumerate(societies):
         area = match_area(s, area_grid)
         if area and area["properties"]["osm"] in used_areas:
