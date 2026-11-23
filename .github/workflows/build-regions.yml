@@ -1,0 +1,99 @@
+name: Build NOIDA datasets
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-regions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        city: [noida]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Verify city configuration
+        run: |
+          python - <<'PY'
+          import json
+          cities = json.load(open('data/cities.json'))
+          city = cities['${{ matrix.city }}']
+          south, west, north, east = city['bbox']
+          assert -90 <= south < north <= 90
+          assert -180 <= west < east <= 180
+          assert west <= city['center'][0] <= east
+          assert south <= city['center'][1] <= north
+          PY
+      - name: Test data pipeline
+        run: |
+          python -m pip install pytest
+          cd pipeline
+          python -m pytest -q
+      - name: Test website
+        run: |
+          cd web
+          npm ci
+          npx vitest run --root .. cli web/src
+      - name: Crawl Magicbricks list
+        run: python pipeline/mb_crawl.py list ${{ matrix.city }}
+      - name: Crawl Magicbricks projects
+        run: python pipeline/mb_crawl.py projects ${{ matrix.city }}
+      - name: Fetch OpenStreetMap features
+        run: python pipeline/osm_fetch.py ${{ matrix.city }}
+      - name: Build web dataset
+        run: python pipeline/build_city.py ${{ matrix.city }}
+      - name: Audit independent evidence and data quality
+        run: python pipeline/audit_city.py noida --strict
+      - name: Validate generated dataset
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          city = '${{ matrix.city }}'
+          d = Path('web/public/data')
+          main = json.loads((d / (city + '.json')).read_text())
+          shapes = json.loads((d / (city + '-shapes.geojson')).read_text())
+          details = json.loads((d / (city + '-details.json')).read_text())
+          assert main['city']['id'] == city
+          assert main['counts']['on_map'] > 0, 'No located societies; review upstream source/slug'
+          assert main['societies'], 'Empty city output'
+          assert shapes['type'] == 'FeatureCollection'
+          assert isinstance(details, dict)
+          print('Counts:', main['counts'])
+          PY
+      - name: Commit validated NOIDA website data to development branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data/noida.json web/public/data/noida-details.json web/public/data/noida-shapes.geojson web/public/data/noida-societies.csv web/public/data/noida-units.csv web/public/data/cities.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate audited NOIDA property dataset"
+            git push origin HEAD:feature/noida-south-delhi
+          fi
+      - name: Save generated data for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-${{ matrix.city }}
+          path: |
+            web/public/data/${{ matrix.city }}*
+            pipeline/out/${{ matrix.city }}/mb_index.json
+            pipeline/out/${{ matrix.city }}/mb_projects.json
+            pipeline/out/${{ matrix.city }}/osm_areas.geojson
+            pipeline/out/${{ matrix.city }}/osm_pois.json
+            pipeline/out/${{ matrix.city }}/audit.json
+          retention-days: 30
+          if-no-files-found: warn
