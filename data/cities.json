@@ -48,30 +48,15 @@
     "name": "NOIDA",
     "magicbricks": "noida",
     "bbox": [
-      28.38,
+      28.4,
       77.28,
       28.65,
-      77.65
+      77.55
     ],
     "center": [
       77.39,
-      28.55
+      28.54
     ],
     "zoom": 11.4
-  },
-  "south-delhi": {
-    "name": "South Delhi",
-    "magicbricks": "new-delhi",
-    "bbox": [
-      28.41,
-      77.07,
-      28.6,
-      77.34
-    ],
-    "center": [
-      77.21,
-      28.51
-    ],
-    "zoom": 11.6
   }
 }
