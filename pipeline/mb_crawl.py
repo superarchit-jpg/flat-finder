@@ -44,6 +44,9 @@ def fetch(url):
     f = CACHE / (hashlib.sha1(url.encode()).hexdigest() + ".html.gz")
     if f.exists() and f.stat().st_size > 2000:
         return gzip.decompress(f.read_bytes()).decode("utf-8", "ignore")
+    # Normalize non-breaking spaces and other stray whitespace in source URLs.
+    # A raw NBSP cannot be encoded into an HTTP request target by urllib.
+    url = "-".join(url.split())
     for attempt in range(3):
         try:
             throttle()
