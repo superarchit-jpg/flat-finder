@@ -1,5 +1,77 @@
 {
-  "gurgaon": { "name": "Gurugram", "magicbricks": "gurgaon", "bbox": [28.33, 76.88, 28.55, 77.16], "center": [77.065, 28.425], "zoom": 12.4 },
-  "bangalore": { "name": "Bengaluru", "magicbricks": "bangalore", "bbox": [12.80, 77.40, 13.20, 77.80], "center": [77.60, 12.97], "zoom": 11.4 },
-  "mumbai": { "name": "Mumbai", "magicbricks": "mumbai", "bbox": [18.89, 72.77, 19.30, 73.05], "center": [72.88, 19.08], "zoom": 11.4 }
+  "gurgaon": {
+    "name": "Gurugram",
+    "magicbricks": "gurgaon",
+    "bbox": [
+      28.33,
+      76.88,
+      28.55,
+      77.16
+    ],
+    "center": [
+      77.065,
+      28.425
+    ],
+    "zoom": 12.4
+  },
+  "bangalore": {
+    "name": "Bengaluru",
+    "magicbricks": "bangalore",
+    "bbox": [
+      12.8,
+      77.4,
+      13.2,
+      77.8
+    ],
+    "center": [
+      77.6,
+      12.97
+    ],
+    "zoom": 11.4
+  },
+  "mumbai": {
+    "name": "Mumbai",
+    "magicbricks": "mumbai",
+    "bbox": [
+      18.89,
+      72.77,
+      19.3,
+      73.05
+    ],
+    "center": [
+      72.88,
+      19.08
+    ],
+    "zoom": 11.4
+  },
+  "noida": {
+    "name": "NOIDA",
+    "magicbricks": "noida",
+    "bbox": [
+      28.38,
+      77.28,
+      28.65,
+      77.65
+    ],
+    "center": [
+      77.39,
+      28.55
+    ],
+    "zoom": 11.4
+  },
+  "south-delhi": {
+    "name": "South Delhi",
+    "magicbricks": "new-delhi",
+    "bbox": [
+      28.41,
+      77.07,
+      28.6,
+      77.34
+    ],
+    "center": [
+      77.21,
+      28.51
+    ],
+    "zoom": 11.6
+  }
 }
