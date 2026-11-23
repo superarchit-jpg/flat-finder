@@ -4,6 +4,29 @@ Every housing society in a city on one night map. Set the smallest bedroom you c
 
 Gurugram is first: about 2,700 projects from Magicbricks, building outlines from OpenStreetMap, and a set of societies verified by reading builder brochures and HRERA plans.
 
+
+## NOIDA development status (separate branch)
+
+NOIDA is implemented as a city configuration on `feature/noida-south-delhi` (historical branch name; South Delhi is not in scope). **It is not live until a generated, audited dataset is merged and deployed.**
+
+The pipeline runs through `.github/workflows/build-regions.yml` and:
+1. Collects Magicbricks project pages using a shared one-request-per-second throttle.
+2. Collects OSM geography and nearby amenities.
+3. Builds NOIDA city JSON, shapes, details, and CSV files.
+4. Runs `pipeline/audit_city.py noida --strict` to reject invalid coordinates, missing sources, invalid unit dimensions, and invalid prices.
+5. Writes review findings to `pipeline/out/noida/audit.json`, then commits generated website data **to the development branch only** when structural checks pass.
+
+### Independent verification versus portal listings
+
+- Portal project location, quoted prices, and amenities are source-attributed listings, **not automatically independently verified**.
+- Generated/approximate map shapes are never evidence of building location or footprint.
+- Estimates (marked ~) are not live listing prices; prices flagged by the existing outlier detector are excluded from filtering.
+- Bedroom sizes count as floor-plan measurements only when they have a source. Missing bedroom sizes remain unverified.
+- `data/rera/noida.json` holds registrations checked against official UP RERA documents. A claimed UP RERA number on a portal does not count as independent verification. Registration confirms a project filing, **not prices, amenities, construction progress, bedroom sizes, or title**.
+- The audit records which projects need follow-up; absence of an audit warning is not proof that an advertised claim is true.
+
+The official UP RERA search is at https://www.up-rera.in/ . Do not bypass authentication, captcha, or request restrictions. For unavailable plans, leave bedroom dimensions blank and obtain public builder/approved drawings before labelling a unit verified.
+
 ## What the colours mean
 
 - **Bright**: matches your search.

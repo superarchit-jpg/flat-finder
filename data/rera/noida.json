@@ -1,0 +1,24 @@
+{
+  "source": "https://www.up-rera.in/",
+  "notes": "Only add projects after checking the official UP RERA registration, project name, locality and source URL. Empty means zero independently confirmed records, not that no projects are registered.",
+  "projects": [
+    {
+      "registration_id": "UPRERAPRJ591510",
+      "official_name": "PRATEEK CANARY",
+      "portal_name": "Prateek Canary",
+      "locality": "Sector 150",
+      "official_url": "https://up-rera.in/ViewProjectInDetailPublicView.aspx?id=19819",
+      "checked_on": "2026-11-24",
+      "notes": "Official registration and project address: SC-02/A7, Sector 150. Registration proves filing, not current construction status or room dimensions."
+    },
+    {
+      "registration_id": "UPRERAPRJ183246",
+      "official_name": "Pious Orchards",
+      "portal_name": "ATS Pious Orchards",
+      "locality": "Sector 150",
+      "official_url": "https://www.up-rera.in/Projectsummary?IRSAHEB=D6PY3lyims8%3D&NPJ6RAme=hVJD6tmpzuSbwZqd51Tumg%3D%3D&PaURJEMAN4=ZL9MNERkNdaOgRrOGrMn1Q%3D%3D&UI0aPA1ISD=siDsgwiH0is%3D&hfFlag=9emr4VdBw22M7BGjKtJWMPDI4s5cHQZP",
+      "checked_on": "2026-11-24",
+      "notes": "Official UP RERA project registration confirms Pious Orchards. Sector 150 locality cross-checked against property listing; not verification of current price or floor plan."
+    }
+  ]
+}
