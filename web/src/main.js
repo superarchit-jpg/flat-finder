@@ -53,7 +53,7 @@ async function boot() {
 
   myList = params.get('list') ? params.get('list').split(',').filter((id) => byId.has(id)) : store.get(`ff-list-${cityId}`, []).filter((id) => byId.has(id));
   const c = city.counts, m = city.price_model || {}, rated = city.societies.filter((s) => s.rating).length;
-  $('note').textContent = `${c.on_map.toLocaleString()} societies · ${(c.for_sale || 0).toLocaleString()} homes for sale, ${(c.for_rent || 0).toLocaleString()} for rent on Magicbricks · ${c.verified} verified from brochures and HRERA plans`;
+  $('note').textContent = `${c.on_map.toLocaleString()} societies · ${(c.for_sale || 0).toLocaleString()} homes for sale, ${(c.for_rent || 0).toLocaleString()} for rent on Magicbricks · ${c.verified} floor-plan verified from brochures and ${cityId === "gurgaon" ? "HRERA" : "official"} plans`;
   $('about-prices').innerHTML = `Prices and rents are medians of live Magicbricks listings. <b>⚠</b> marks a listing price our checks think is a typo (far from the same home nearby, or rent and price that cannot both be right): it is shown as listed but not used for filters. <b>~</b> marks our estimate: rent is about ${((m.city_yield || 0.025) * 100).toFixed(1)}% of the price per year here (measured on ${m.pairs || 0} society and BHK pairs, correlation ${m.log_price_rent_correlation ?? 'n/a'}). "Probably fits" uses a cautious bedroom size estimated from unit size (${city.room_model?.n || 0} verified unit types). Resident ratings exist for ${rated.toLocaleString()} societies.`;
   $('dl-all').href = `/data/${cityId}-societies.csv`;
   $('dl-units').href = `/data/${cityId}-units.csv`;
