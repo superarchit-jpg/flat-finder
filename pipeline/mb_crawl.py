@@ -10,6 +10,7 @@ import json
 import pathlib
 import sys
 import time
+import threading
 import urllib.request
 
 import mb_parse
@@ -24,6 +25,18 @@ LIST_URL = "https://www.magicbricks.com/residential-projects-in-" + CFG["magicbr
 OUT = OUT / CITY
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 DELAY = 1.0
+RATE_LOCK = threading.Lock()
+NEXT_REQUEST = [0.0]
+
+
+def throttle():
+    # One request per second across all project-page workers, not per worker.
+    with RATE_LOCK:
+        now = time.monotonic()
+        wait = max(0.0, NEXT_REQUEST[0] - now)
+        if wait:
+            time.sleep(wait)
+        NEXT_REQUEST[0] = time.monotonic() + DELAY
 
 
 def fetch(url):
@@ -33,10 +46,10 @@ def fetch(url):
         return gzip.decompress(f.read_bytes()).decode("utf-8", "ignore")
     for attempt in range(3):
         try:
+            throttle()
             req = urllib.request.Request(url, headers={"User-Agent": UA})
             html = urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "ignore")
             f.write_bytes(gzip.compress(html.encode("utf-8"), 9))
-            time.sleep(DELAY)
             return html
         except Exception as e:  # network hiccup: back off and retry
             print("  retry", attempt + 1, url, e, flush=True)
