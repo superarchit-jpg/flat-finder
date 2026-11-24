@@ -42,7 +42,7 @@ def throttle():
 
 def normalize_url(url):
     """Remove accidental whitespace from scraped URLs without changing slug separators."""
-    return re.sub(r"\\s+", "", url.replace("\\u00a0", ""))
+    return re.sub(r"\s+", "", url)
 
 
 def fetch(url):
