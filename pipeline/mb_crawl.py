@@ -8,6 +8,7 @@ import gzip
 import hashlib
 import json
 import pathlib
+import re
 import sys
 import time
 import threading
@@ -39,14 +40,17 @@ def throttle():
         NEXT_REQUEST[0] = time.monotonic() + DELAY
 
 
+def normalize_url(url):
+    """Remove accidental whitespace from scraped URLs without changing slug separators."""
+    return re.sub(r"\\s+", "", url.replace("\\u00a0", ""))
+
+
 def fetch(url):
+    url = normalize_url(url)
     CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / (hashlib.sha1(url.encode()).hexdigest() + ".html.gz")
     if f.exists() and f.stat().st_size > 2000:
         return gzip.decompress(f.read_bytes()).decode("utf-8", "ignore")
-    # Normalize non-breaking spaces and other stray whitespace in source URLs.
-    # A raw NBSP cannot be encoded into an HTTP request target by urllib.
-    url = "-".join(url.split())
     for attempt in range(3):
         try:
             throttle()
@@ -58,7 +62,6 @@ def fetch(url):
             print("  retry", attempt + 1, url, e, flush=True)
             time.sleep(5 * (attempt + 1))
     return None
-
 
 def crawl_list():
     first = fetch(LIST_URL.format(1))
